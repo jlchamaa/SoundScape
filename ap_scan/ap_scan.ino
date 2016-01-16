@@ -1,4 +1,3 @@
-
 /* 
   
   file : ap_scan.ino
@@ -22,16 +21,12 @@ void setup()
   
   // check for the presence of the shield:
   
-  
-  
   if (WiFi.status() == WL_NO_SHIELD) 
   {
     Serial.println("WiFi101 shield not present");
  
     while (true);
   }
-
-
 
 
   Serial.println("Initializing Wifi...");

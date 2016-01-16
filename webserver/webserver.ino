@@ -24,8 +24,9 @@
 
 
 
-char ssid[] = "IEEE 2.4GHz";      			// your network SSID (name)
-char pass[] = "Ilovesolder";   			// your network password
+//char ssid[] = "IEEE 2.4GHz";            // your network SSID (name)
+char ssid[] = "UCLA WEB";            // your network SSID (name)
+char pass[] = "Ilovesolder";   			    // your network password
 int keyIndex = 0;                 		// your network key Index number (needed only for WEP)
 
 
@@ -74,7 +75,8 @@ void wifi_init(void)
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(ssid);
+//    status = WiFi.begin(ssid, pass);
 
     // wait 10 seconds for connection:
     delay(10000);
