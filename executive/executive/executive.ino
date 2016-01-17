@@ -4,10 +4,16 @@
 
 
 //char ssid[] = "IEEE 2.4GHz";        // your network SSID (name)
-char ssid[] = "OnePlus2";             // your network SSID (name)
-char pass[] = "abirdwiththeword";          // your network password
+char ssid[] = "Kai_iPhone";           // your network SSID (name)
+char pass[] = "JLPCJLPC";             // your network password
+
+//char ssid[] = "OnePlus2";             // your network SSID (name)
+//char pass[] = "abirdwiththeword";     // your network password
 int keyIndex = 0;                     // your network key Index number (needed only for WEP)
 
+long signal_queue[75];
+int N = 75;
+int currentIdx = 0;
 
 int status = WL_IDLE_STATUS;
 
@@ -28,6 +34,11 @@ void setup() {
 
   // Setupt PWM for volume control
   setPwmFrequency(9, 1);
+
+  // assign 0 to array
+  for (int i=0;i<N;i++){
+  signal_queue[i]=0;
+}
 }
 
 
@@ -45,11 +56,11 @@ void wifi_init(void)
     Serial.print("Attempting to connect to SSID: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid);
-//    status = WiFi.begin(ssid, pass);
+//    status = WiFi.begin(ssid);
+    status = WiFi.begin(ssid, pass);
 
     // wait 10 seconds for connection:
-    delay(10000);
+    delay(5000);
   }
   
   server.begin();
@@ -68,71 +79,50 @@ void loop()
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
-  long output_V = 255*(rssi/40.0+1.5);
-  Serial.print("output: ");
-  Serial.println(output_V);
-  
-  analogWrite(9, output_V);
+
 
 //  int dist = Rssi2DistInMeter(rssi);
 //  Serial.print("Dist: ");
 //  Serial.print(dist);
 //  Serial.println(" m");
 
-  delay(5000);
+  // Update Array
+  signal_queue[currentIdx] = -1*rssi;
+  currentIdx++;
+  if (currentIdx>(N-1)) {
+    currentIdx = 0;
+  }
+
+  // Take average of previous 50 data
+  long sum = 0, average = 0;
+  for (int i = 0; i<N;i++){
+    sum += signal_queue[i];
+  }
+  average = sum/N;
+
+  // Mapping
   
-//  // listen for incoming clients
-//    
-//  WiFiClient client = server.available();
-//  if (client) {
-//    Serial.println("new client");
-//    // an http request ends with a blank line
-//    boolean currentLineIsBlank = false;
-//    while (client.connected()) {
-//      if (client.available()) {
-//        char c = client.read();
-//        Serial.write(c);
-//        // if you've gotten to the end of the line (received a newline
-//        // character) and the line is blank, the http request has ended,
-//        // so you can send a reply
-//        if (c == '\n' && currentLineIsBlank) {
-//          // send a standard http response header
-//          client.println("HTTP/1.1 200 OK");
-//          client.println("Content-Type: text/html");
-//          client.println("Connection: close");  // the connection will be closed after completion of the response
-//          client.println("Refresh: 5");  // refresh the page automatically every 5 sec
-//          client.println();
-//          client.println("<!DOCTYPE HTML>");
-//          client.println("<html>");
-//          // output the value of each analog input pin
-//          for (int analogChannel = 0; analogChannel < 6; analogChannel++) {
-//            int sensorReading = analogRead(analogChannel);
-//            client.print("analog input ");
-//            client.print(analogChannel);
-//            client.print(" is ");
-//            client.print(sensorReading);
-//            client.println("<br />");
-//          }
-//          client.println("</html>");
-//          break;
-//        }
-//        if (c == '\n') {
-//          // you're starting a new line
-//          currentLineIsBlank = true;
-//        }
-//        else if (c != '\r') {
-//          // you've gotten a character on the current line
-//          currentLineIsBlank = false;
-//        }
-//      }
-//    }
-//    // give the web browser time to receive the data
-//    delay(1);
-//
-//    // close the connection:
-//    client.stop();
-//    Serial.println("client disconnected");
-//  }
+  //             { 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60}
+  int volume[16]={220,190,160,130,100, 80, 60, 40, 30, 25, 20, 15, 10,  5,  0,  0 };
+  
+  int apply;
+  if(average<45){
+    apply=255;
+  }
+  else{
+    if(average>60){
+      apply=0;    
+    }
+    else apply=volume[average-45];
+  }
+  Serial.print("Average: ");
+  Serial.println(average);
+  Serial.print("Apply: ");
+  Serial.println(apply);
+  analogWrite(9, apply);
+  // Update every 0.1 sec (ish)
+  delay(20);
+  
 }
 
 void printWifiStatus() {
